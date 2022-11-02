@@ -22,9 +22,7 @@ export class ProductService {
 
   getProductList(theCategoryId: number): Observable<Product[]> {
     const searchUrl = `${this.baseUrl}/search/findByCategoryId?id=${theCategoryId}`
-    return this.httpClient.get<GetResponseProducts>(searchUrl).pipe(
-      map(res => res._embedded.products)
-    )
+    return this.getProducts(searchUrl)
   }
 
   getProductCategories(): Observable<ProductCategory[]> {
@@ -33,6 +31,16 @@ export class ProductService {
     )
   }
 
+  searchProducts(theKeyWord: string): Observable<Product[]> {
+    const searchUrl = `${this.baseUrl}/search/findByNameContaining?name=${theKeyWord}`
+    return this.getProducts(searchUrl)
+  }
+
+  private getProducts(searchUrl: string): Observable<Product[]> {
+    return this.httpClient.get<GetResponseProducts>(searchUrl).pipe(
+      map(res => res._embedded.products)
+    );
+  }
 }
 
 interface GetResponseProducts { // Unwraps JSON from REST API
