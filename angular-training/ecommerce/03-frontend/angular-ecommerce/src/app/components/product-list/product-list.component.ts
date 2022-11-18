@@ -11,8 +11,14 @@ import { ProductService } from 'src/app/services/product.service';
 export class ProductListComponent implements OnInit {
 
   products: Product[] = [];
-  currentCategioryId: number = 1;
+  currentCategoryId: number = 1;
+  previousCategoryId: number = 1;
   searchMode: boolean = false;
+
+  // Properties for pagination
+  thePageNumber: number = 1;
+  thePageSize: number = 10;
+  theTotalElements: number = 0;
 
   constructor(
     private productService: ProductService,
@@ -40,13 +46,28 @@ export class ProductListComponent implements OnInit {
     if (hasCategoryId) {
       // Tip: You can quickly convert string to number using '+' symbol
       // NOTE: The '!' symbol at the end asserts that this value is not null.
-      this.currentCategioryId = +this.route.snapshot.paramMap.get('id')!;
+      this.currentCategoryId = +this.route.snapshot.paramMap.get('id')!;
     } else {
-      this.currentCategioryId = 1;
+      this.currentCategoryId = 1;
     }
 
-    this.productService.getProductList(this.currentCategioryId).subscribe(
-      data => { this.products = data }
+    // Check if the category is different from previous and handle it.
+    if (this.previousCategoryId != this.currentCategoryId) {
+      this.thePageNumber = 1;
+    }
+
+    this.previousCategoryId = this.currentCategoryId;
+    console.log(`currentCategoryId=${this.currentCategoryId}, thePageNumber=${this.thePageNumber}`);
+
+    // Pages in Spring Data REST starts at 0
+    // Pages in Angular starts at 1
+    this.productService.getProductListPaginate(this.thePageNumber - 1, this.thePageSize, this.currentCategoryId).subscribe(
+      data => {
+        this.products = data._embedded.products;
+        this.thePageNumber = data.page.number + 1;
+        this.thePageSize = data.page.size;
+        this.theTotalElements = data.page.totalElements;
+      }
     )
   }
 
